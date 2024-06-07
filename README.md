@@ -48,33 +48,30 @@
 
 
 ###### 3. Resize *var* and *root* Volume
-> First, we reduce the volume of **/dev/mapper/ubuntu-opt**
-Then we increase **/dev/mapper/ubuntu-var** by 50% and **/dev/mapper/ubuntu-root** with the rest
 
-![image013](https://github.com/xDeBian/DevOps-Internship-Task/assets/20703661/ad3db107-4846-4d40-a268-ea1422da2b0e)
+![image](https://github.com/xDeBian/DevOps-Internship-Task/assets/20703661/988c0f74-c298-4ee4-a562-00182465ff6b)
+
 
 ```shell
-e2fsck -f /dev/mapper/ubuntu-opt
-resize2fs /dev/mapper/ubuntu-opt 300M
-lvreduce -L 300M /dev/mapper/ubuntu-opt
+sudo pvcreate /dev/sda4
+sudo vgextend ubuntu /dev/sda4
+
+
 ```
  
 > Let'S Increase **Var** By 6GB, Since Its Capacity Is 12GB. 
 
 
   ```shell
-  lvextend -L +6G /dev/mapper/ubuntu-var
-  resize2fs /dev/mapper/ubuntu-var
+sudo lvextend -l +6G /dev/ubuntu/var
+sudo resize2fs /dev/ubuntu/var
 
 ```
-> Let's increase the **root** with the remaining space.Let's increase the root with the remaining space.
+> Let's increase the **root** with the remaining space
 
 
-
-
-    
-    lvextend -l +100%FREE /dev/mapper/ubuntu-root
-    resize2fs /dev/mapper/ubuntu-root
+    lvextend -l +100%FREE /dev/ubuntu/root
+    resize2fs /dev/ubuntu/root
  
 ![image015](https://github.com/xDeBian/DevOps-Internship-Task/assets/20703661/33be523b-36c5-4e40-8bc6-e8f8680e8f6d)
 
