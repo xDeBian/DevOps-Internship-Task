@@ -206,6 +206,54 @@ fi
 ```
 
 ------------
+Make **.gitlab-ci.yml**
+
+```shell
+stages:
+  - check_services
+
+check_services:
+  stage: check_services
+  tags:
+    - shared
+    - shell
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+  script:
+    - ssh $SSH_USER@$SSH_HOST '/bin/echo "Testing echo command"'
+    - ssh $SSH_USER@$SSH_HOST '/bin/echo "$PATH"'
+    - ssh $SSH_USER@$SSH_HOST 'which ansible || /bin/echo "Ansible path is:"'
+    - ssh $SSH_USER@$SSH_HOST 'which git || /bin/echo "Git path is:"'
+    - ssh $SSH_USER@$SSH_HOST 'which nginx || /bin/echo "Nginx path is:"'
+    - ssh $SSH_USER@$SSH_HOST 'which flask || /bin/echo "Flask path is:"'
+    - ssh $SSH_USER@$SSH_HOST 'which gunicorn || /bin/echo "Gunicorn path is:"'
+    - ssh $SSH_USER@$SSH_HOST 'which redis-server || /bin/echo "Redis path is:"'
+    - ssh $SSH_USER@$SSH_HOST 'which python || /bin/echo "Python path is:"'
+    - ssh $SSH_USER@$SSH_HOST 'which pip || /bin/echo "Pip path is:"'
+    - ssh $SSH_USER@$SSH_HOST 'pip show python-dotenv || /bin/echo "python-dotenv path is:"'
+    - ssh $SSH_USER@$SSH_HOST 'if [ -d "/root/uptime-webapp" ]; then rm -rf /root/uptime-webapp; fi'
+    - ssh $SSH_USER@$SSH_HOST 'git clone http://gitlab.devops.tbc/academy/exam/uptime-webapp.git /root/uptime-webapp'
+    - ssh $SSH_USER@$SSH_HOST 'cp /root/gunicorn_config.py /root/uptime-webapp/gunicorn_config.py'
+    - ssh $SSH_USER@$SSH_HOST 'cd /root/uptime-webapp && mv .env.example .env && echo "APP_HOST = \"127.0.0.1\"" > .env && echo "APP_PORT = \"5000\"" >> .env && echo "APP_DEBUG = False" >> .env && echo "REDIS_HOST = \"127.0.0.1\"" >> .env && echo "REDIS_PORT = \"6379\"" >> .env'
+
+    # Start and verify flaskapp.service
+    - ssh $SSH_USER@$SSH_HOST 'systemctl daemon-reload'
+    - ssh $SSH_USER@$SSH_HOST 'systemctl enable flaskapp.service'
+    - ssh $SSH_USER@$SSH_HOST 'systemctl start flaskapp.service'
+   
+    # Stop and disable flaskapp.service
+    - ssh $SSH_USER@$SSH_HOST 'systemctl stop flaskapp.service'
+    - ssh $SSH_USER@$SSH_HOST 'systemctl disable flaskapp.service'
+
+    # Find and kill the process using port 8000
+    - ssh $SSH_USER@$SSH_HOST 'pid=$(sudo lsof -t -i :8000); if [ -n "$pid" ]; then sudo kill -9 $pid; echo "Killed process $pid using port 8000"; else echo "No process found using port 8000"; fi'
+    - ssh $SSH_USER@$SSH_HOST 'exit'
+  when: manual
+```
+
 ** 6. Create a Private repository on gitlab.devops.tbc **
 
 [http://gitlab.devops.tbc/ddzneladze/ansible](http://gitlab.devops.tbc/ddzneladze/ansible "http://gitlab.devops.tbc/ddzneladze/ansible")
